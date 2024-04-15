@@ -45,10 +45,9 @@ def main():
     conn.close()
 
 
-def decode_time(raw_date: typing.Tuple[int]):
+def decode_time(raw_date: int):
     date = datetime.datetime.fromtimestamp(raw_date)
-    print(date)
-
+    return date
 #     b'\x00\x0f866897050116377'
 # b'\x00\x00\x00\x00\x00\x00\x006\x08\x01\x00\x00\x01k@\xd8\xea0\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x05\x02\x15\x03\x01\x01\x01B^\x0f\x01\xf1\x00\x00`\x1a\x01N\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\xc7\xcf'
 
@@ -62,17 +61,19 @@ if __name__ == '__main__':
     avl_data = items[10:-5]
     avl_data_raw = raw_data[8:-4]
     avl_data_len = raw_data[4:8]
-    print(avl_data_len)
+    # print(avl_data_len)
     records_count = items[9]
 
-    print(all(items[:4]) is False)
-    print(items)
+    # print(all(items[:4]) is False)
+    # print(items)
+    #
+    # print(crc16_teltonika(avl_data_raw))
+    # print(int(str(crc_sum_raw.hex()), base=16))
+    # print(int(str(avl_data_len.hex()), base=16))
+    print(avl_data_raw)
 
-    print(crc16_teltonika(avl_data_raw))
-    print(int(str(crc_sum_raw.hex()), base=16))
-    print(int(str(avl_data_len.hex()), base=16))
-
-    date_raw = avl_data_raw[2:8]
-    date = struct.unpack('>HHH', date_raw)
-    print(type(date))
-    decode_time(date)
+    date_raw = avl_data_raw[4:8]
+    print(date_raw)
+    date = struct.unpack('>I', date_raw)[0]
+    # print(date)
+    print(decode_time(date))
