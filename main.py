@@ -33,10 +33,12 @@ def main():
         response = 1
         conn.send(response.to_bytes(1, byteorder='big'))
         data_full = conn.recv(1024)
+        crc_sum_raw = raw_data[-4:]
+        avl_data_len = raw_data[4:8]
         # raw_data = b'\x00\x00\x00\x00\x00\x00\x006\x08\x01\x00\x00\x01k@\xd8\xea0\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x05\x02\x15\x03\x01\x01\x01B^\x0f\x01\xf1\x00\x00`\x1a\x01N\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\xc7\xcf'
         items = [int(item) for item in data_full]
         avl_data_raw = data_full[8:-4]
-        if ((all(items[:4]) is not False) or (
+        if ((sum(items[:4]) != 0) or (
                 crc16_teltonika(avl_data_raw) != int(str(crc_sum_raw.hex()), base=16)) or
                 (len(avl_data_raw) != int(str(avl_data_len.hex()), base=16))):
             pass
@@ -46,7 +48,7 @@ def main():
 
 
 def decode_time(raw_date: int):
-    date = datetime.datetime.fromtimestamp(raw_date)
+    date = datetime.datetime.fromtimestamp(raw_date/1e3)  # вопрос
     return date
 #     b'\x00\x0f866897050116377'
 # b'\x00\x00\x00\x00\x00\x00\x006\x08\x01\x00\x00\x01k@\xd8\xea0\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x05\x02\x15\x03\x01\x01\x01B^\x0f\x01\xf1\x00\x00`\x1a\x01N\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\xc7\xcf'
@@ -56,24 +58,31 @@ if __name__ == '__main__':
     # main()
     raw_data = b'\x00\x00\x00\x00\x00\x00\x006\x08\x01\x00\x00\x01k@\xd8\xea0\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x05\x02\x15\x03\x01\x01\x01B^\x0f\x01\xf1\x00\x00`\x1a\x01N\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\xc7\xcf'
     items = [int(item) for item in raw_data]
-    crc_sum = items[-4:]
-    crc_sum_raw = raw_data[-4:]
-    avl_data = items[10:-5]
-    avl_data_raw = raw_data[8:-4]
-    avl_data_len = raw_data[4:8]
-    # print(avl_data_len)
-    records_count = items[9]
+    print(raw_data[:4])
+    print(struct.unpack('>I', raw_data[:4])[0])
+    print(raw_data[4:8])
+    print(struct.unpack('>I', raw_data[4:8])[0])
+    print(raw_data[8])
+    print(raw_data[9])
+    print(raw_data[10:18])
+    print(struct.unpack('>Q', raw_data[10:18])[0])
+    print(decode_time(*struct.unpack('>Q', raw_data[10:18])))
+    print(raw_data[18])
+    print(struct.unpack('>I', raw_data[19:23]))
+    print(struct.unpack('>I', raw_data[23:27]))
+    print(struct.unpack('>H', raw_data[27:29]))
+    print(struct.unpack('>H', raw_data[29:31]))
+    print(raw_data[31])
+    print(struct.unpack('>H', raw_data[32:34]))
 
-    # print(all(items[:4]) is False)
-    # print(items)
+
+
+    # print(struct.unpack('>I', raw_data[-4:])[0])
     #
-    # print(crc16_teltonika(avl_data_raw))
-    # print(int(str(crc_sum_raw.hex()), base=16))
-    # print(int(str(avl_data_len.hex()), base=16))
-    print(avl_data_raw)
-
-    date_raw = avl_data_raw[4:8]
-    print(date_raw)
-    date = struct.unpack('>I', date_raw)[0]
-    # print(date)
-    print(decode_time(date))
+    #
+    #
+    # avl_date = raw_data[10:18]
+    # print(len(avl_date))
+    # print(avl_date)
+    # date = struct.unpack('>II', avl_date)[0]
+    # print(decode_time(date))
