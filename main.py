@@ -1,5 +1,7 @@
 import socket
 import struct
+import datetime
+import typing
 
 
 def crc16_teltonika(pData):
@@ -22,29 +24,30 @@ def main():
 
     s.listen(1)
     conn, addr = s.accept()
-    while True:
-        data = conn.recv(1024)
-        # print(data)
-        enc_1, length = data[:2]
-        rest_data = data[2:]
-        # print(enc_1)
-        # print(length)
 
-        if rest_data == b'866897050116377' and len(rest_data) == length:
-            response = 1
-            conn.send(response.to_bytes(1, byteorder='big'))
-            data_full = conn.recv(1024)
-            # raw_data = b'\x00\x00\x00\x00\x00\x00\x006\x08\x01\x00\x00\x01k@\xd8\xea0\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x05\x02\x15\x03\x01\x01\x01B^\x0f\x01\xf1\x00\x00`\x1a\x01N\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\xc7\xcf'
-            items = [int(item) for item in data_full]
-            avl_data_raw = data_full[8:-4]
-            if ((all(items[:4]) is not False) or (
-                    crc16_teltonika(avl_data_raw) != int(str(crc_sum_raw.hex()), base=16)) or
-                    (len(avl_data_raw) != int(str(avl_data_len.hex()), base=16))):
-                break
-            print(data_full)
+    data = conn.recv(1024)
+    enc_1, length = data[:2]
+    rest_data = data[2:]
+
+    if rest_data == b'866897050116377' and len(rest_data) == length:
+        response = 1
+        conn.send(response.to_bytes(1, byteorder='big'))
+        data_full = conn.recv(1024)
+        # raw_data = b'\x00\x00\x00\x00\x00\x00\x006\x08\x01\x00\x00\x01k@\xd8\xea0\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x05\x02\x15\x03\x01\x01\x01B^\x0f\x01\xf1\x00\x00`\x1a\x01N\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\xc7\xcf'
+        items = [int(item) for item in data_full]
+        avl_data_raw = data_full[8:-4]
+        if ((all(items[:4]) is not False) or (
+                crc16_teltonika(avl_data_raw) != int(str(crc_sum_raw.hex()), base=16)) or
+                (len(avl_data_raw) != int(str(avl_data_len.hex()), base=16))):
+            pass
+        print(data_full)
 
     conn.close()
 
+
+def decode_time(raw_date: typing.Tuple[int]):
+    date = datetime.datetime.fromtimestamp(raw_date)
+    print(date)
 
 #     b'\x00\x0f866897050116377'
 # b'\x00\x00\x00\x00\x00\x00\x006\x08\x01\x00\x00\x01k@\xd8\xea0\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x05\x02\x15\x03\x01\x01\x01B^\x0f\x01\xf1\x00\x00`\x1a\x01N\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\xc7\xcf'
@@ -70,8 +73,6 @@ if __name__ == '__main__':
     print(int(str(avl_data_len.hex()), base=16))
 
     date_raw = avl_data_raw[2:8]
-    # rdate_raw = date_raw[::-1]
-    # print(rdate_raw)
-    # print(date_raw.decode())
-    # date = avl_data_raw[]
-    # print(date)
+    date = struct.unpack('>HHH', date_raw)
+    print(type(date))
+    decode_time(date)
