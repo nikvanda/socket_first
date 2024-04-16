@@ -2,7 +2,9 @@ import socket
 import struct
 import datetime
 import typing
+import json
 from decoder import Decoder
+import os
 
 
 def crc16_teltonika(p_data: bytes) -> int:
@@ -16,6 +18,22 @@ def crc16_teltonika(p_data: bytes) -> int:
             else:
                 crc16_result >>= 1
     return crc16_result
+
+
+def put_data_to_json(longitude, latitude, height, azimuth, idx):
+    coords = {'longitude': longitude, 'latitude': latitude,
+              'height': height, 'azimuth': azimuth}
+    filename = 'coord_data.json'
+    filedata = {}
+    if filename in os.listdir():
+        with open(filename, encoding='utf-8') as file:
+            filedata = json.load(file)
+
+    filedata[idx] = coords
+
+    with open(filename, 'w', encoding='utf-8') as file:
+        json.dump(filedata, file)
+
 
 
 def main():
@@ -57,12 +75,9 @@ def main():
             full_record = (record, io_data)
             records.append(full_record)
 
+
     conn.close()
 
-
-def decode_time(raw_date: int):
-    date = datetime.datetime.fromtimestamp(raw_date/1e3)
-    return date
 #     b'\x00\x0f866897050116377'
 
 
@@ -70,9 +85,9 @@ if __name__ == '__main__':
     # main()
     raw_data_1 = b'\x00\x00\x00\x00\x00\x00\x006\x08\x01\x00\x00\x01k@\xd8\xea0\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x05\x02\x15\x03\x01\x01\x01B^\x0f\x01\xf1\x00\x00`\x1a\x01N\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\xc7\xcf'
     raw_data_2 = b'\x00\x00\x00\x00\x00\x00\x00E\x08\x01\x00\x00\x01\x8e\xe5\xc4X\x90\x00\x14\x95j.\x1d\x89\xf1[\x00\x8e\x00\x00\x0c\x00\x00\x00\x0f\t\x05\x00\x06\x00\x01\x00\x15\x05\xcf\x00E\x07f\xb3\xd0\x0c\xd1\x00\x06B\rWC\r.p\x00\x00d\x00\x00q\x00\x00e\x00\x00\x00\x00\x01\x00\x00K\xbb'
-    io_data_1, idx = Decoder.decode_io_data(raw_data_1[34:])
-    print(idx)
-    io_data_2, idx = Decoder.decode_io_data(raw_data_2[34:])
-    print(idx)
-    # record = Decoder.decode_record(raw_data[10:34])
-    # print(record)
+    # io_data_1, idx = Decoder.decode_io_data(raw_data_1[34:])
+    # print(idx)
+    # io_data_2, idx = Decoder.decode_io_data(raw_data_2[34:])
+    # print(idx)
+    record_1 = Decoder.decode_record(raw_data_1[10:34])
+    put_data_to_json(record_1.longitude, record_1.latitude, record_1.height, record_1.azimuth, 1)
