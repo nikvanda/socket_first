@@ -1,11 +1,12 @@
 import socket
-import struct
-import datetime
-import typing
-import json
+
+import sqlalchemy as sa
 
 from decoder import Decoder
+import models
 import functions as func
+
+engine = sa.create_engine('sqlite:///example.db', echo=True)
 
 
 def main():
@@ -59,5 +60,8 @@ if __name__ == '__main__':
     io_data_1, idx, test_d = Decoder.decode_io_data(raw_data_1[34:])
     # io_data_2, idx = Decoder.decode_io_data(raw_data_2[34:])
     # print(idx)
-    # record_1 = Decoder.decode_record(raw_data_1[10:34])
-    func.put_data_to_json(test_d, 3)
+    record_1 = Decoder.decode_record(raw_data_2[10:34])
+    print(record_1)
+    # func.put_data_to_json(test_d, 3)
+    models.Base.metadata.create_all(bind=engine)
+
