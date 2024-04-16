@@ -1,5 +1,6 @@
 import collections as clt
 import datetime as dt
+import typing as tp
 import struct
 
 Record = clt.namedtuple('Record', ('codec', 'packets_amount', 'date',
@@ -28,3 +29,36 @@ class Decoder:
                         height, azimuth, satellite_amount, speed)
 
         return record
+
+    @staticmethod
+    def decode_io_data(io_data: bytes) -> tp.List[int]:
+        tracker_length = 2, 3, 5, 9
+        byte_type = 'B', 'H', 'I', 'Q'
+        io_data_dec = [io_data[0], io_data[1]]
+
+        current_byte_idx = 2
+        current_byte_type_idx = 0
+        for i in tracker_length:
+            amount = io_data[current_byte_idx]
+            io_data_dec.append(amount)
+            current_byte_idx += 1
+            print(f'{i - 1} byte trackers amount: {amount}')
+            end_tracker = current_byte_idx + amount * i
+            for y in range(current_byte_idx, end_tracker, i):
+                if i == 2:
+                    print(y, y + 1)
+                    print(f'ID: {io_data[y]},'
+                          f' Value: {io_data[y + 1]}')
+                    io_data_dec.extend([io_data[y], io_data[y + 1]])
+                else:
+                    print(y, range(y + 1, y + i))
+                    print(f'ID: {io_data[y]},'
+                          f' Value: {struct.unpack(f">{byte_type[current_byte_type_idx]}", io_data[y + 1: y + i])[0]}')
+                    io_data_dec.extend([io_data[y],
+                                        struct.unpack(f">{byte_type[current_byte_type_idx]}", io_data[y + 1: y + i])[
+                                            0]])
+
+            current_byte_type_idx += 1
+            current_byte_idx = end_tracker
+
+        return io_data_dec
