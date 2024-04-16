@@ -27,34 +27,43 @@ class Decoder:
         return record
 
     @staticmethod
-    def decode_io_data(io_data: bytes) -> tp.Tuple[tp.List[int], int]:
+    def decode_io_data(io_data: bytes) -> tp.Tuple[tp.List[int], int, tp.Dict[str, int]]:
         tracker_length = 2, 3, 5, 9
         byte_type = 'B', 'H', 'I', 'Q'
         io_data_dec = [io_data[0], io_data[1]]
 
         current_byte_idx = 2
         current_byte_type_idx = 0
+        io_data_dict = {'Event_io': io_data[0], 'Total_amount_io': io_data[1]}
         for i in tracker_length:
             amount = io_data[current_byte_idx]
             io_data_dec.append(amount)
             current_byte_idx += 1
+
             print(f'{i - 1} byte trackers amount: {amount}')
+            io_data_dict[f'{i - 1}_trackers_amount'] = amount
+
             end_tracker = current_byte_idx + amount * i
+            trackers = {}
+
             for y in range(current_byte_idx, end_tracker, i):
                 if i == 2:
                     print(y, y + 1)
                     print(f'ID: {io_data[y]},'
                           f' Value: {io_data[y + 1]}')
+                    trackers[io_data[y]] = io_data[y + 1]
                     io_data_dec.extend([io_data[y], io_data[y + 1]])
                 else:
                     print(y, range(y + 1, y + i))
                     print(f'ID: {io_data[y]},'
                           f' Value: {struct.unpack(f">{byte_type[current_byte_type_idx]}", io_data[y + 1: y + i])[0]}')
+                    trackers[io_data[y]] = struct.unpack(f">{byte_type[current_byte_type_idx]}", io_data[y + 1: y + i])[0]
                     io_data_dec.extend([io_data[y],
                                         struct.unpack(f">{byte_type[current_byte_type_idx]}", io_data[y + 1: y + i])[
                                             0]])
 
             current_byte_type_idx += 1
             current_byte_idx = end_tracker
+            io_data_dict[f'{i-1}_trackers'] = trackers
 
-        return io_data_dec, current_byte_idx
+        return io_data_dec, current_byte_idx, io_data_dict
