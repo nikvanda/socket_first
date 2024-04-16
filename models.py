@@ -8,6 +8,7 @@ class Record(Base):
     __tablename__ = 'record'
 
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+    # tracker_imei = sa.Column(sa.Integer)
     date = sa.Column(sa.DateTime)
     priority = sa.Column(sa.Boolean)
     longitude = sa.Column(sa.Float)
@@ -28,3 +29,10 @@ class Record(Base):
         self.azimuth = azimuth
         self.satellite_amount = satellite_amount
         self.speed = speed
+
+
+class Machine(Base):
+    __tablename__ = 'machine'
+
+    id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+    imei = sa.Column(sa.Integer)
