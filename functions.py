@@ -35,7 +35,7 @@ def put_data_to_storage(records, imei):
         gps_data, io_data = record
         print(session.query(models.Machine).all())
 
-        response = session.query(models.Machine.imei).filter(models.Machine.imei == imei)
+        response = session.query(models.Machine.imei).filter(models.Machine.imei == imei).all()
         if response is False:
             imei_test = models.Machine(imei=imei)
             session.add(imei_test)
