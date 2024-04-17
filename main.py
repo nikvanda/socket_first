@@ -1,4 +1,5 @@
 import socket
+import selectors
 
 import sqlalchemy as sa
 from sqlalchemy.orm import sessionmaker
@@ -13,6 +14,8 @@ models.Base.metadata.create_all(bind=engine)
 
 Session = sessionmaker(bind=engine)
 session = Session()
+
+selector = selectors.DefaultSelector()
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 port = 1050
