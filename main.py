@@ -1,4 +1,5 @@
 import socket
+import struct
 
 import sqlalchemy as sa
 from sqlalchemy.orm import sessionmaker
@@ -7,7 +8,12 @@ from decoder import Decoder
 import models
 import functions as func
 
-engine = sa.create_engine('sqlite:///example.db', echo=True)
+engine = sa.create_engine('sqlite:///example.db')
+
+models.Base.metadata.create_all(bind=engine)
+
+Session = sessionmaker(bind=engine)
+session = Session()
 
 
 def main():
@@ -24,6 +30,7 @@ def main():
 
     response = 1 if len(rest_data) == length else 0
     conn.send(response.to_bytes(1, byteorder='big'))
+    imei = rest_data.decode('ascii')
     while response:
         data_full = conn.recv(1024)
         print(data_full)
@@ -37,17 +44,32 @@ def main():
                 (len(avl_data_raw) != int(str(avl_data_len.hex()), base=16))):
             break
         codec = data_full[8]
-        packet_amount = data_full[9]
+        records_count = data_full[9]
         current_byte = 10
         records = []
-        for packet in range(0, packet_amount):
-            record = data_full[current_byte: current_byte + 24]
+        for packet in range(0, records_count):
+            record = Decoder.decode_record(data_full[current_byte: current_byte + 24])
             current_byte += 24
 
-            io_data, idx = data_full[current_byte:]
+            _, idx, io_dict = data_full[current_byte:]
             current_byte += idx
-            full_record = (record, io_data)
+            full_record = (record, io_dict)
             records.append(full_record)
+
+        for record in records:
+            gps_data, io_data = record
+            print(session.query(models.Machine).all())
+
+            response = session.query(models.Machine.imei).filter(models.Machine.imei == imei)
+            if response is False:
+                imei_test = models.Machine(imei=imei)
+                session.add(imei_test)
+
+            rec_base = models.Record(*gps_data, machine_id=imei)
+            session.add(rec_base)
+
+            session.commit()
+            func.put_data_to_json(io_data, rec_base.id)
 
     conn.close()
 
@@ -72,5 +94,4 @@ if __name__ == '__main__':
     # record_test = models.Record(*record_1)
     # session.add(record_test)
     # session.commit()
-    print(len(b'866897050116377'))
-    #TODO: add imei to records
+    pass

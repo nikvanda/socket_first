@@ -22,7 +22,7 @@ class Record(Base):
     machine = relationship('Machine', back_populates='record')
 
     def __init__(self, date, priority, longitude, latitude,
-                 height, azimuth, satellite_amount, speed):
+                 height, azimuth, satellite_amount, speed, machine_id):
         super().__init__()
         self.date = date
         self.priority = priority
@@ -32,13 +32,14 @@ class Record(Base):
         self.azimuth = azimuth
         self.satellite_amount = satellite_amount
         self.speed = speed
+        self.machine_id = machine_id
 
 
 class Machine(Base):
     __tablename__ = 'machine'
 
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
-    imei = sa.Column(sa.Integer)
+    imei = sa.Column(sa.Integer, unique=True)
     record = relationship('Record', back_populates='machine')
 
     def __init__(self, imei):
