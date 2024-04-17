@@ -51,10 +51,12 @@ def main():
             record = Decoder.decode_record(data_full[current_byte: current_byte + 24])
             current_byte += 24
 
-            _, idx, io_dict = data_full[current_byte:]
+            _, idx, io_dict = Decoder.decode_io_data(data_full[current_byte:])
             current_byte += idx
             full_record = (record, io_dict)
             records.append(full_record)
+
+        conn.send(len(records).to_bytes(1, byteorder='big'))
 
         for record in records:
             gps_data, io_data = record
@@ -77,7 +79,7 @@ def main():
 
 
 if __name__ == '__main__':
-    # main()
+    main()
     # raw_data_1 = b'\x00\x00\x00\x00\x00\x00\x006\x08\x01\x00\x00\x01k@\xd8\xea0\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x05\x02\x15\x03\x01\x01\x01B^\x0f\x01\xf1\x00\x00`\x1a\x01N\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\xc7\xcf'
     # raw_data_2 = b'\x00\x00\x00\x00\x00\x00\x00E\x08\x01\x00\x00\x01\x8e\xe5\xc4X\x90\x00\x14\x95j.\x1d\x89\xf1[\x00\x8e\x00\x00\x0c\x00\x00\x00\x0f\t\x05\x00\x06\x00\x01\x00\x15\x05\xcf\x00E\x07f\xb3\xd0\x0c\xd1\x00\x06B\rWC\r.p\x00\x00d\x00\x00q\x00\x00e\x00\x00\x00\x00\x01\x00\x00K\xbb'
     # io_data_1, idx, test_d = Decoder.decode_io_data(raw_data_2[34:])
