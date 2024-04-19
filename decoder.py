@@ -19,6 +19,9 @@ class Decoder:
         height = struct.unpack('>H', record_raw_data[17:19])[0]
         azimuth = struct.unpack('>H', record_raw_data[19:21])[0]
         satellite_amount = record_raw_data[21]
+        print(f'satellite_amount {satellite_amount}')
+        print(f'longitude {longitude}')
+        print(f'latitude {latitude}')
         speed = struct.unpack('>H', record_raw_data[22:24])[0]
 
         record = Record(timestamp, priority, longitude, latitude,
